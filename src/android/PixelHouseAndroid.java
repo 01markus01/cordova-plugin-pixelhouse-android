@@ -45,7 +45,7 @@ public class PixelHouseAndroid extends CordovaPlugin {
             cordova.getActivity().startActivity(intent);
             callbackContext.success("Opened notification channel settings: " + channelId);
         } catch (Exception e) {
-            callbackContext.error(e.getMessage());
+            callbackContext.error(e.toString());
         }
     }
 }
