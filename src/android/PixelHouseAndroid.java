@@ -1,5 +1,8 @@
 package com.pixelhouse.android;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -12,20 +15,54 @@ import org.json.JSONException;
 
 public class PixelHouseAndroid extends CordovaPlugin {
 
+    private static final String DEFAULT_CHANNEL_ID = "default_channel";
+
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+        if ("prepareDefaultNotificationChannel".equals(action)) {
+            prepareDefaultNotificationChannel(callbackContext);
+            return true;
+        }
+
         if ("openDefaultNotificationChannel".equals(action)) {
-            openNotificationChannel("default_channel", callbackContext);
+            openNotificationChannel(DEFAULT_CHANNEL_ID, callbackContext);
             return true;
         }
 
         if ("openNotificationChannel".equals(action)) {
-            String channelId = args.optString(0, "default_channel");
+            String channelId = args.optString(0, DEFAULT_CHANNEL_ID);
             openNotificationChannel(channelId, callbackContext);
             return true;
         }
 
         return false;
+    }
+
+    private void prepareDefaultNotificationChannel(CallbackContext callbackContext) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                NotificationManager notificationManager =
+                        (NotificationManager) cordova.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+
+                NotificationChannel channel = new NotificationChannel(
+                        DEFAULT_CHANNEL_ID,
+                        "Default channel",
+                        NotificationManager.IMPORTANCE_HIGH
+                );
+
+                channel.setDescription("Benachrichtigungen");
+                channel.enableVibration(true);
+                channel.enableLights(true);
+
+                notificationManager.createNotificationChannel(channel);
+
+                callbackContext.success("Default channel vorbereitet");
+            } else {
+                callbackContext.success("Android-Version braucht keinen Notification Channel");
+            }
+        } catch (Exception e) {
+            callbackContext.error(e.toString());
+        }
     }
 
     private void openNotificationChannel(String channelId, CallbackContext callbackContext) {
