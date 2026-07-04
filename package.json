@@ -1,0 +1,11 @@
+{
+  "name": "cordova-plugin-pixelhouse-android",
+  "version": "0.1.0",
+  "description": "PixelHouse Android helper plugin for Cordova/GDevelop.",
+  "cordova": {
+    "id": "cordova-plugin-pixelhouse-android",
+    "platforms": ["android"]
+  },
+  "keywords": ["cordova", "android", "gdevelop", "pixelhouse", "notifications"],
+  "license": "MIT"
+}
