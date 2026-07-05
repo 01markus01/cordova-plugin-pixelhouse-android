@@ -35,6 +35,15 @@ public class PixelHouseAndroid extends CordovaPlugin {
             return true;
         }
 
+        if ("scheduleNotification".equals(action)) {
+            String title = args.optString(0, "PixelHouse");
+            String message = args.optString(1, "Test notification");
+            int seconds = args.optInt(2, 5);
+
+            scheduleNotification(title, message, seconds, callbackContext);
+            return true;
+        }
+
         return false;
     }
 
