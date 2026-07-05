@@ -11,5 +11,9 @@ module.exports = {
 
   prepareDefaultNotificationChannel: function (success, error) {
     exec(success, error, 'PixelHouseAndroid', 'prepareDefaultNotificationChannel', []);
+  },
+
+  scheduleNotification: function (title, message, seconds, success, error) {
+    exec(success, error, 'PixelHouseAndroid', 'scheduleNotification', [title, message, seconds]);
   }
 };
