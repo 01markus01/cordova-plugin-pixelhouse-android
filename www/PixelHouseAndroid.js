@@ -19,5 +19,9 @@ module.exports = {
 
   requestNotificationPermission: function (success, error) {
     exec(success, error, 'PixelHouseAndroid', 'requestNotificationPermission', []);
+  },
+
+  areNotificationsEnabled: function (success, error) {
+    exec(success, error, 'PixelHouseAndroid', 'areNotificationsEnabled', []);
   }
 };
