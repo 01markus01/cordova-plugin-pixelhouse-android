@@ -1,8 +1,9 @@
-// Add scheduleNotification test method
 package com.pixelhouse.android;
 
+import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -17,6 +18,7 @@ import org.json.JSONException;
 public class PixelHouseAndroid extends CordovaPlugin {
 
     private static final String DEFAULT_CHANNEL_ID = "default_channel";
+    private static final String HIGH_CHANNEL_ID = "pixelhouse_high_channel";
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -72,9 +74,7 @@ public class PixelHouseAndroid extends CordovaPlugin {
                 callbackContext.success("Default channel vorbereitet");
 
             } else {
-
                 callbackContext.success("Android-Version braucht keinen Notification Channel");
-
             }
 
         } catch (Exception e) {
@@ -85,51 +85,82 @@ public class PixelHouseAndroid extends CordovaPlugin {
     private void openNotificationChannel(String channelId, CallbackContext callbackContext) {
 
         try {
-
             String packageName = cordova.getActivity().getPackageName();
             Intent intent;
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-
                 intent = new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS);
                 intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName);
                 intent.putExtra(Settings.EXTRA_CHANNEL_ID, channelId);
-
             } else {
-
                 intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                 intent.setData(Uri.parse("package:" + packageName));
-
             }
 
             cordova.getActivity().startActivity(intent);
-
             callbackContext.success("Opened notification channel settings: " + channelId);
 
         } catch (Exception e) {
-
             callbackContext.error(e.toString());
-
         }
     }
 
     private void scheduleNotification(String title, String message, int seconds, CallbackContext callbackContext) {
 
         try {
+            Context context = cordova.getActivity().getApplicationContext();
 
-            callbackContext.success(
-                    "scheduleNotification erreicht: "
-                            + title
-                            + " / "
-                            + message
-                            + " / "
-                            + seconds
+            NotificationManager notificationManager =
+                    (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                NotificationChannel channel = new NotificationChannel(
+                        HIGH_CHANNEL_ID,
+                        "PixelHouse High Notifications",
+                        NotificationManager.IMPORTANCE_HIGH
+                );
+
+                channel.setDescription("Native PixelHouse notifications");
+                channel.enableVibration(true);
+                channel.enableLights(true);
+                channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+
+                notificationManager.createNotificationChannel(channel);
+            }
+
+            Intent launchIntent = context.getPackageManager()
+                    .getLaunchIntentForPackage(context.getPackageName());
+
+            PendingIntent pendingIntent = PendingIntent.getActivity(
+                    context,
+                    0,
+                    launchIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
             );
 
+            Notification.Builder builder;
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                builder = new Notification.Builder(context, HIGH_CHANNEL_ID);
+            } else {
+                builder = new Notification.Builder(context);
+                builder.setPriority(Notification.PRIORITY_HIGH);
+            }
+
+            builder.setContentTitle(title);
+            builder.setContentText(message);
+            builder.setSmallIcon(context.getApplicationInfo().icon);
+            builder.setContentIntent(pendingIntent);
+            builder.setAutoCancel(true);
+            builder.setDefaults(Notification.DEFAULT_ALL);
+            builder.setVisibility(Notification.VISIBILITY_PUBLIC);
+
+            notificationManager.notify(2001, builder.build());
+
+            callbackContext.success("Native notification shown immediately");
+
         } catch (Exception e) {
-
             callbackContext.error(e.toString());
-
         }
     }
 }
