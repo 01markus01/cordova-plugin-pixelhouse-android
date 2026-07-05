@@ -3,15 +3,22 @@
   <name>PixelHouseAndroid</name>
   <description>PixelHouse Android helper plugin for Cordova/GDevelop.</description>
   <license>MIT</license>
+
   <js-module src="www/PixelHouseAndroid.js" name="PixelHouseAndroid">
     <clobbers target="PixelHouseAndroid" />
   </js-module>
+
   <platform name="android">
     <config-file target="res/xml/config.xml" parent="/*">
       <feature name="PixelHouseAndroid">
         <param name="android-package" value="com.pixelhouse.android.PixelHouseAndroid" />
       </feature>
     </config-file>
+
+    <config-file target="AndroidManifest.xml" parent="/manifest">
+      <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    </config-file>
+
     <source-file src="src/android/PixelHouseAndroid.java" target-dir="src/com/pixelhouse/android" />
   </platform>
 </plugin>

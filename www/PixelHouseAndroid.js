@@ -15,5 +15,9 @@ module.exports = {
 
   scheduleNotification: function (title, message, seconds, success, error) {
     exec(success, error, 'PixelHouseAndroid', 'scheduleNotification', [title, message, seconds]);
+  },
+
+  requestNotificationPermission: function (success, error) {
+    exec(success, error, 'PixelHouseAndroid', 'requestNotificationPermission', []);
   }
 };

@@ -1,12 +1,13 @@
-//
 package com.pixelhouse.android;
 
+import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
@@ -20,6 +21,9 @@ public class PixelHouseAndroid extends CordovaPlugin {
 
     private static final String DEFAULT_CHANNEL_ID = "default_channel";
     private static final String HIGH_CHANNEL_ID = "pixelhouse_high_channel";
+    private static final int REQUEST_CODE_POST_NOTIFICATIONS = 5001;
+
+    private CallbackContext notificationPermissionCallback;
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -46,6 +50,11 @@ public class PixelHouseAndroid extends CordovaPlugin {
             int seconds = args.optInt(2, 5);
 
             scheduleNotification(title, message, seconds, callbackContext);
+            return true;
+        }
+
+        if ("requestNotificationPermission".equals(action)) {
+            requestNotificationPermission(callbackContext);
             return true;
         }
 
@@ -104,6 +113,61 @@ public class PixelHouseAndroid extends CordovaPlugin {
         } catch (Exception e) {
             callbackContext.error(e.toString());
         }
+    }
+
+    private void requestNotificationPermission(CallbackContext callbackContext) {
+        try {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                callbackContext.success("Notification permission not needed on this Android version");
+                return;
+            }
+
+            Context context = cordova.getActivity().getApplicationContext();
+
+            if (context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
+                    == PackageManager.PERMISSION_GRANTED) {
+                callbackContext.success("Notification permission already granted");
+                return;
+            }
+
+            notificationPermissionCallback = callbackContext;
+
+            cordova.requestPermission(
+                    this,
+                    REQUEST_CODE_POST_NOTIFICATIONS,
+                    Manifest.permission.POST_NOTIFICATIONS
+            );
+
+        } catch (Exception e) {
+            callbackContext.error(e.toString());
+        }
+    }
+
+    @Override
+    public void onRequestPermissionResult(
+            int requestCode,
+            String[] permissions,
+            int[] grantResults
+    ) throws JSONException {
+
+        if (requestCode == REQUEST_CODE_POST_NOTIFICATIONS) {
+
+            if (notificationPermissionCallback == null) {
+                return;
+            }
+
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                notificationPermissionCallback.success("Notification permission granted");
+            } else {
+                notificationPermissionCallback.error("Notification permission denied");
+            }
+
+            notificationPermissionCallback = null;
+            return;
+        }
+
+        super.onRequestPermissionResult(requestCode, permissions, grantResults);
     }
 
     private void scheduleNotification(String title, String message, int seconds, CallbackContext callbackContext) {
