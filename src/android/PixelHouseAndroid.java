@@ -19,6 +19,7 @@ public class PixelHouseAndroid extends CordovaPlugin {
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+
         if ("prepareDefaultNotificationChannel".equals(action)) {
             prepareDefaultNotificationChannel(callbackContext);
             return true;
@@ -50,8 +51,10 @@ public class PixelHouseAndroid extends CordovaPlugin {
     private void prepareDefaultNotificationChannel(CallbackContext callbackContext) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
                 NotificationManager notificationManager =
-                        (NotificationManager) cordova.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+                        (NotificationManager) cordova.getActivity()
+                                .getSystemService(Context.NOTIFICATION_SERVICE);
 
                 NotificationChannel channel = new NotificationChannel(
                         DEFAULT_CHANNEL_ID,
@@ -66,32 +69,66 @@ public class PixelHouseAndroid extends CordovaPlugin {
                 notificationManager.createNotificationChannel(channel);
 
                 callbackContext.success("Default channel vorbereitet");
+
             } else {
+
                 callbackContext.success("Android-Version braucht keinen Notification Channel");
+
             }
+
         } catch (Exception e) {
             callbackContext.error(e.toString());
         }
     }
 
     private void openNotificationChannel(String channelId, CallbackContext callbackContext) {
+
         try {
+
             String packageName = cordova.getActivity().getPackageName();
             Intent intent;
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
                 intent = new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS);
                 intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName);
                 intent.putExtra(Settings.EXTRA_CHANNEL_ID, channelId);
+
             } else {
+
                 intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                 intent.setData(Uri.parse("package:" + packageName));
+
             }
 
             cordova.getActivity().startActivity(intent);
+
             callbackContext.success("Opened notification channel settings: " + channelId);
+
         } catch (Exception e) {
+
             callbackContext.error(e.toString());
+
+        }
+    }
+
+    private void scheduleNotification(String title, String message, int seconds, CallbackContext callbackContext) {
+
+        try {
+
+            callbackContext.success(
+                    "scheduleNotification erreicht: "
+                            + title
+                            + " / "
+                            + message
+                            + " / "
+                            + seconds
+            );
+
+        } catch (Exception e) {
+
+            callbackContext.error(e.toString());
+
         }
     }
 }
