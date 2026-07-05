@@ -59,6 +59,11 @@ public class PixelHouseAndroid extends CordovaPlugin {
             return true;
         }
 
+        if ("areNotificationsEnabled".equals(action)) {
+            areNotificationsEnabled(callbackContext);
+            return true;
+        }
+
         return false;
     }
 
@@ -115,6 +120,33 @@ public class PixelHouseAndroid extends CordovaPlugin {
                     REQUEST_CODE_POST_NOTIFICATIONS,
                     Manifest.permission.POST_NOTIFICATIONS
             );
+
+        } catch (Exception e) {
+            callbackContext.error(e.toString());
+        }
+    }
+
+    private void areNotificationsEnabled(CallbackContext callbackContext) {
+        try {
+            Context context = cordova.getActivity().getApplicationContext();
+
+            boolean enabled;
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                enabled = context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
+                        == PackageManager.PERMISSION_GRANTED;
+            } else {
+                NotificationManager notificationManager =
+                        (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    enabled = notificationManager.areNotificationsEnabled();
+                } else {
+                    enabled = true;
+                }
+            }
+
+            callbackContext.success(enabled ? "true" : "false");
 
         } catch (Exception e) {
             callbackContext.error(e.toString());
