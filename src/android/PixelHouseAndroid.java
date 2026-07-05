@@ -1,6 +1,7 @@
 package com.pixelhouse.android;
 
 import android.Manifest;
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -10,8 +11,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
 import android.provider.Settings;
 
 import org.apache.cordova.CallbackContext;
@@ -65,12 +64,8 @@ public class PixelHouseAndroid extends CordovaPlugin {
 
     private void prepareDefaultNotificationChannel(CallbackContext callbackContext) {
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                createHighNotificationChannel();
-                callbackContext.success("Default channel vorbereitet");
-            } else {
-                callbackContext.success("Android-Version braucht keinen Notification Channel");
-            }
+            createHighNotificationChannel();
+            callbackContext.success("Notification channel prepared");
         } catch (Exception e) {
             callbackContext.error(e.toString());
         }
@@ -134,7 +129,6 @@ public class PixelHouseAndroid extends CordovaPlugin {
     ) throws JSONException {
 
         if (requestCode == REQUEST_CODE_POST_NOTIFICATIONS) {
-
             if (notificationPermissionCallback == null) {
                 return;
             }
@@ -157,62 +151,51 @@ public class PixelHouseAndroid extends CordovaPlugin {
         try {
             int safeSeconds = Math.max(0, seconds);
 
-            if (safeSeconds == 0) {
-                showNotification(title, message);
-                callbackContext.success("Native notification shown immediately");
-                return;
+            createHighNotificationChannel();
+
+            Context context = cordova.getActivity().getApplicationContext();
+
+            Intent intent = new Intent(context, PixelHouseNotificationReceiver.class);
+            intent.putExtra("title", title);
+            intent.putExtra("message", message);
+
+            int notificationId = (int) System.currentTimeMillis();
+
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                    context,
+                    notificationId,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+            );
+
+            long triggerAtMillis = System.currentTimeMillis() + (safeSeconds * 1000L);
+
+            AlarmManager alarmManager =
+                    (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP,
+                        triggerAtMillis,
+                        pendingIntent
+                );
+            } else {
+                alarmManager.setExact(
+                        AlarmManager.RTC_WAKEUP,
+                        triggerAtMillis,
+                        pendingIntent
+                );
             }
 
-            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    showNotification(title, message);
-                }
-            }, safeSeconds * 1000L);
-
-            callbackContext.success("Native notification scheduled after " + safeSeconds + " seconds");
+            if (safeSeconds == 0) {
+                callbackContext.success("Native notification scheduled immediately");
+            } else {
+                callbackContext.success("Native notification scheduled after " + safeSeconds + " seconds");
+            }
 
         } catch (Exception e) {
             callbackContext.error(e.toString());
         }
-    }
-
-    private void showNotification(String title, String message) {
-        Context context = cordova.getActivity().getApplicationContext();
-
-        createHighNotificationChannel();
-
-        NotificationManager notificationManager =
-                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-
-        Intent launchIntent = context.getPackageManager()
-                .getLaunchIntentForPackage(context.getPackageName());
-
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                context,
-                0,
-                launchIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
-
-        Notification.Builder builder;
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            builder = new Notification.Builder(context, HIGH_CHANNEL_ID);
-        } else {
-            builder = new Notification.Builder(context);
-            builder.setPriority(Notification.PRIORITY_HIGH);
-        }
-
-        builder.setContentTitle(title);
-        builder.setContentText(message);
-        builder.setSmallIcon(context.getApplicationInfo().icon);
-        builder.setContentIntent(pendingIntent);
-        builder.setAutoCancel(true);
-        builder.setDefaults(Notification.DEFAULT_ALL);
-        builder.setVisibility(Notification.VISIBILITY_PUBLIC);
-
-        notificationManager.notify(2001, builder.build());
     }
 
     private void createHighNotificationChannel() {

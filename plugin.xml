@@ -17,8 +17,16 @@
 
     <config-file target="AndroidManifest.xml" parent="/manifest">
       <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+      <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    </config-file>
+
+    <config-file target="AndroidManifest.xml" parent="/manifest/application">
+      <receiver
+          android:name="com.pixelhouse.android.PixelHouseNotificationReceiver"
+          android:exported="false" />
     </config-file>
 
     <source-file src="src/android/PixelHouseAndroid.java" target-dir="src/com/pixelhouse/android" />
+    <source-file src="src/android/PixelHouseNotificationReceiver.java" target-dir="src/com/pixelhouse/android" />
   </platform>
 </plugin>
