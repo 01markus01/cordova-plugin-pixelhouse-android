@@ -10,6 +10,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 
 import org.apache.cordova.CallbackContext;
@@ -47,7 +49,7 @@ public class PixelHouseAndroid extends CordovaPlugin {
         if ("scheduleNotification".equals(action)) {
             String title = args.optString(0, "PixelHouse");
             String message = args.optString(1, "Test notification");
-            int seconds = args.optInt(2, 5);
+            int seconds = args.optInt(2, 0);
 
             scheduleNotification(title, message, seconds, callbackContext);
             return true;
@@ -64,36 +66,17 @@ public class PixelHouseAndroid extends CordovaPlugin {
     private void prepareDefaultNotificationChannel(CallbackContext callbackContext) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-
-                NotificationManager notificationManager =
-                        (NotificationManager) cordova.getActivity()
-                                .getSystemService(Context.NOTIFICATION_SERVICE);
-
-                NotificationChannel channel = new NotificationChannel(
-                        DEFAULT_CHANNEL_ID,
-                        "Default channel",
-                        NotificationManager.IMPORTANCE_HIGH
-                );
-
-                channel.setDescription("Benachrichtigungen");
-                channel.enableVibration(true);
-                channel.enableLights(true);
-
-                notificationManager.createNotificationChannel(channel);
-
+                createHighNotificationChannel();
                 callbackContext.success("Default channel vorbereitet");
-
             } else {
                 callbackContext.success("Android-Version braucht keinen Notification Channel");
             }
-
         } catch (Exception e) {
             callbackContext.error(e.toString());
         }
     }
 
     private void openNotificationChannel(String channelId, CallbackContext callbackContext) {
-
         try {
             String packageName = cordova.getActivity().getPackageName();
             Intent intent;
@@ -171,61 +154,86 @@ public class PixelHouseAndroid extends CordovaPlugin {
     }
 
     private void scheduleNotification(String title, String message, int seconds, CallbackContext callbackContext) {
-
         try {
+            int safeSeconds = Math.max(0, seconds);
+
+            if (safeSeconds == 0) {
+                showNotification(title, message);
+                callbackContext.success("Native notification shown immediately");
+                return;
+            }
+
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    showNotification(title, message);
+                }
+            }, safeSeconds * 1000L);
+
+            callbackContext.success("Native notification scheduled after " + safeSeconds + " seconds");
+
+        } catch (Exception e) {
+            callbackContext.error(e.toString());
+        }
+    }
+
+    private void showNotification(String title, String message) {
+        Context context = cordova.getActivity().getApplicationContext();
+
+        createHighNotificationChannel();
+
+        NotificationManager notificationManager =
+                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        Intent launchIntent = context.getPackageManager()
+                .getLaunchIntentForPackage(context.getPackageName());
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                context,
+                0,
+                launchIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        Notification.Builder builder;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            builder = new Notification.Builder(context, HIGH_CHANNEL_ID);
+        } else {
+            builder = new Notification.Builder(context);
+            builder.setPriority(Notification.PRIORITY_HIGH);
+        }
+
+        builder.setContentTitle(title);
+        builder.setContentText(message);
+        builder.setSmallIcon(context.getApplicationInfo().icon);
+        builder.setContentIntent(pendingIntent);
+        builder.setAutoCancel(true);
+        builder.setDefaults(Notification.DEFAULT_ALL);
+        builder.setVisibility(Notification.VISIBILITY_PUBLIC);
+
+        notificationManager.notify(2001, builder.build());
+    }
+
+    private void createHighNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Context context = cordova.getActivity().getApplicationContext();
 
             NotificationManager notificationManager =
                     (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                NotificationChannel channel = new NotificationChannel(
-                        HIGH_CHANNEL_ID,
-                        "PixelHouse High Notifications",
-                        NotificationManager.IMPORTANCE_HIGH
-                );
-
-                channel.setDescription("Native PixelHouse notifications");
-                channel.enableVibration(true);
-                channel.enableLights(true);
-                channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-
-                notificationManager.createNotificationChannel(channel);
-            }
-
-            Intent launchIntent = context.getPackageManager()
-                    .getLaunchIntentForPackage(context.getPackageName());
-
-            PendingIntent pendingIntent = PendingIntent.getActivity(
-                    context,
-                    0,
-                    launchIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+            NotificationChannel channel = new NotificationChannel(
+                    HIGH_CHANNEL_ID,
+                    "PixelHouse High Notifications",
+                    NotificationManager.IMPORTANCE_HIGH
             );
 
-            Notification.Builder builder;
+            channel.setDescription("Native PixelHouse notifications");
+            channel.enableVibration(true);
+            channel.enableLights(true);
+            channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                builder = new Notification.Builder(context, HIGH_CHANNEL_ID);
-            } else {
-                builder = new Notification.Builder(context);
-                builder.setPriority(Notification.PRIORITY_HIGH);
-            }
-
-            builder.setContentTitle(title);
-            builder.setContentText(message);
-            builder.setSmallIcon(context.getApplicationInfo().icon);
-            builder.setContentIntent(pendingIntent);
-            builder.setAutoCancel(true);
-            builder.setDefaults(Notification.DEFAULT_ALL);
-            builder.setVisibility(Notification.VISIBILITY_PUBLIC);
-
-            notificationManager.notify(2001, builder.build());
-
-            callbackContext.success("Native notification shown immediately");
-
-        } catch (Exception e) {
-            callbackContext.error(e.toString());
+            notificationManager.createNotificationChannel(channel);
         }
     }
 }
