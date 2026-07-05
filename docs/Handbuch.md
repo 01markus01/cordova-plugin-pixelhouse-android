@@ -23,3 +23,31 @@ cordova-plugin-pixelhouse-android
 Android Java
 
 Dieses Handbuch wächst während der Entwicklung mit und dokumentiert alle Funktionen und deren Verwendung.
+
+# Notifications
+
+## Request Notification Permission
+
+Fragt den Benutzer nach der Android-Berechtigung für Benachrichtigungen.
+Diese Funktion sollte einmal beim Start der App aufgerufen werden.
+
+---
+
+## Schedule Notification
+
+Parameter:
+
+- Title
+- Message
+- Seconds
+
+Beispiele:
+
+Seconds = 0
+→ Sofort anzeigen
+
+Seconds = 5
+→ Nach 5 Sekunden
+
+Seconds = 60
+→ Nach einer Minute

@@ -45,3 +45,10 @@ Android 13+ benötigt vor dem Senden die Benachrichtigungsberechtigung (POST_NOT
 
 Nächster Schritt:
 Native Funktion zum Anfordern der Benachrichtigungsberechtigung implementieren.
+
+### Meilenstein 007 – Background Notifications
+
+- Notification-System auf AlarmManager umgestellt.
+- BroadcastReceiver (PixelHouseNotificationReceiver) hinzugefügt.
+- plugin.xml erweitert.
+- Grundlage geschaffen, damit Benachrichtigungen auch bei geschlossener App funktionieren.
