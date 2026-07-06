@@ -42,6 +42,11 @@ public class PixelHouseAndroid extends CordovaPlugin {
     private boolean batteryIsCharging = false;
     private int batteryLevel = 0;
 
+    // Device
+    private String deviceManufacturer = "";
+    private String deviceModel = "";
+    private String androidVersion = "";
+
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
 
@@ -119,6 +124,30 @@ public class PixelHouseAndroid extends CordovaPlugin {
 
         if ("getBatteryLevel".equals(action)) {
             getBatteryLevel(callbackContext);
+            return true;
+        }
+
+        // -------------------------
+        // Device
+        // -------------------------
+
+        if ("refreshDeviceInfo".equals(action)) {
+            refreshDeviceInfo(callbackContext);
+            return true;
+        }
+
+        if ("getDeviceManufacturer".equals(action)) {
+            getDeviceManufacturer(callbackContext);
+            return true;
+        }
+
+        if ("getDeviceModel".equals(action)) {
+            getDeviceModel(callbackContext);
+            return true;
+        }
+
+        if ("getAndroidVersion".equals(action)) {
+            getAndroidVersion(callbackContext);
             return true;
         }
 
@@ -500,6 +529,50 @@ public class PixelHouseAndroid extends CordovaPlugin {
             batteryLevel = Math.round((level * 100f) / scale);
         } else {
             batteryLevel = 0;
+        }
+    }
+
+    // -------------------------
+    // Device Methods
+    // -------------------------
+
+    private void refreshDeviceInfo(CallbackContext callbackContext) {
+        try {
+            deviceManufacturer = Build.MANUFACTURER != null ? Build.MANUFACTURER : "";
+            deviceModel = Build.MODEL != null ? Build.MODEL : "";
+            androidVersion = Build.VERSION.RELEASE != null ? Build.VERSION.RELEASE : "";
+
+            callbackContext.success("Device info refreshed");
+
+        } catch (Exception e) {
+            deviceManufacturer = "";
+            deviceModel = "";
+            androidVersion = "";
+            callbackContext.success("Device info not available");
+        }
+    }
+
+    private void getDeviceManufacturer(CallbackContext callbackContext) {
+        try {
+            callbackContext.success(deviceManufacturer);
+        } catch (Exception e) {
+            callbackContext.success("");
+        }
+    }
+
+    private void getDeviceModel(CallbackContext callbackContext) {
+        try {
+            callbackContext.success(deviceModel);
+        } catch (Exception e) {
+            callbackContext.success("");
+        }
+    }
+
+    private void getAndroidVersion(CallbackContext callbackContext) {
+        try {
+            callbackContext.success(androidVersion);
+        } catch (Exception e) {
+            callbackContext.success("");
         }
     }
 }

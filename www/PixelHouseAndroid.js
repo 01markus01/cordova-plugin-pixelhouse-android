@@ -49,5 +49,25 @@ module.exports = {
 
   getBatteryLevel: function (success, error) {
     exec(success, error, 'PixelHouseAndroid', 'getBatteryLevel', []);
+  },
+
+  // -------------------------
+  // Device
+  // -------------------------
+
+  refreshDeviceInfo: function (success, error) {
+    exec(success, error, 'PixelHouseAndroid', 'refreshDeviceInfo', []);
+  },
+
+  getDeviceManufacturer: function (success, error) {
+    exec(success, error, 'PixelHouseAndroid', 'getDeviceManufacturer', []);
+  },
+
+  getDeviceModel: function (success, error) {
+    exec(success, error, 'PixelHouseAndroid', 'getDeviceModel', []);
+  },
+
+  getAndroidVersion: function (success, error) {
+    exec(success, error, 'PixelHouseAndroid', 'getAndroidVersion', []);
   }
 };
