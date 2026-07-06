@@ -10,6 +10,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -18,6 +19,7 @@ import android.hardware.camera2.CameraManager;
 import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Build;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.Settings;
 
@@ -54,6 +56,7 @@ public class PixelHouseAndroid extends CordovaPlugin {
     // Camera
     private CallbackContext cameraCallback;
     private CallbackContext cameraPermissionCallback;
+    private Uri currentPhotoUri;
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -671,6 +674,8 @@ public class PixelHouseAndroid extends CordovaPlugin {
         try {
             Context context = cordova.getActivity().getApplicationContext();
 
+            updatePictureTakenStatus(false);
+
             if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
                 callbackContext.success("Camera not available");
                 return;
@@ -689,6 +694,17 @@ public class PixelHouseAndroid extends CordovaPlugin {
                 return;
             }
 
+            currentPhotoUri = createPhotoUri();
+
+            if (currentPhotoUri == null) {
+                callbackContext.error("Could not create photo file");
+                return;
+            }
+
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, currentPhotoUri);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
             cameraCallback = callbackContext;
 
             cordova.startActivityForResult(
@@ -699,12 +715,57 @@ public class PixelHouseAndroid extends CordovaPlugin {
 
         } catch (Exception e) {
             cameraCallback = null;
+            currentPhotoUri = null;
+            updatePictureTakenStatus(false);
             callbackContext.error(
                     "Exception: "
                             + e.getClass().getSimpleName()
                             + "\n"
                             + e.getMessage()
             );
+        }
+    }
+
+    private Uri createPhotoUri() {
+        try {
+            Context context = cordova.getActivity().getApplicationContext();
+
+            String fileName = "PixelHouse_" + System.currentTimeMillis() + ".jpg";
+
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.DISPLAY_NAME, fileName);
+            values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                values.put(
+                        MediaStore.Images.Media.RELATIVE_PATH,
+                        Environment.DIRECTORY_PICTURES + "/PixelHouse Mobile"
+                );
+            }
+
+            return context.getContentResolver().insert(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    values
+            );
+
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private void updatePictureTakenStatus(final boolean pictureTaken) {
+        try {
+            cordova.getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    webView.loadUrl(
+                            "javascript:window.pixelHousePictureTaken="
+                                    + (pictureTaken ? "true" : "false")
+                                    + ";"
+                    );
+                }
+            });
+        } catch (Exception ignored) {
         }
     }
 
@@ -716,11 +777,23 @@ public class PixelHouseAndroid extends CordovaPlugin {
             }
 
             if (resultCode == Activity.RESULT_OK) {
+                updatePictureTakenStatus(true);
                 cameraCallback.success("success");
             } else {
+                updatePictureTakenStatus(false);
+
+                if (currentPhotoUri != null) {
+                    try {
+                        Context context = cordova.getActivity().getApplicationContext();
+                        context.getContentResolver().delete(currentPhotoUri, null, null);
+                    } catch (Exception ignored) {
+                    }
+                }
+
                 cameraCallback.success("cancelled");
             }
 
+            currentPhotoUri = null;
             cameraCallback = null;
             return;
         }

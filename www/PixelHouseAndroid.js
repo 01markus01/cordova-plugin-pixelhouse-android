@@ -84,6 +84,13 @@ module.exports = {
   },
 
   takePicture: function (success, error) {
+    window.pixelHousePictureTaken = false;
     exec(success, error, 'PixelHouseAndroid', 'takePicture', []);
+  },
+
+  isPictureTaken: function (success, error) {
+    success(!!window.pixelHousePictureTaken);
   }
 };
+
+window.pixelHousePictureTaken = false;
