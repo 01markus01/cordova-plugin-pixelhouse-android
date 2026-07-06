@@ -621,7 +621,12 @@ public class PixelHouseAndroid extends CordovaPlugin {
 
         } catch (Exception e) {
             cameraCallback = null;
-            callbackContext.success("Camera not available");
+            callbackContext.error(
+                    "Exception: "
+                            + e.getClass().getSimpleName()
+                            + "\n"
+                            + e.getMessage()
+            );
         }
     }
 
