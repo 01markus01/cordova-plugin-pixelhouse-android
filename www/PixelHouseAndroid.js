@@ -37,5 +37,17 @@ module.exports = {
 
   isFlashlightOn: function (success, error) {
     exec(success, error, 'PixelHouseAndroid', 'isFlashlightOn', []);
+  },
+
+  refreshBatteryStatus: function (success, error) {
+    exec(success, error, 'PixelHouseAndroid', 'refreshBatteryStatus', []);
+  },
+
+  isBatteryCharging: function (success, error) {
+    exec(success, error, 'PixelHouseAndroid', 'isBatteryCharging', []);
+  },
+
+  getBatteryLevel: function (success, error) {
+    exec(success, error, 'PixelHouseAndroid', 'getBatteryLevel', []);
   }
 };

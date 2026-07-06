@@ -10,10 +10,12 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.net.Uri;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.provider.Settings;
 
@@ -35,6 +37,10 @@ public class PixelHouseAndroid extends CordovaPlugin {
     private CameraManager cameraManager;
     private String flashlightCameraId;
     private boolean flashlightIsOn = false;
+
+    // Battery
+    private boolean batteryIsCharging = false;
+    private int batteryLevel = 0;
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -94,6 +100,25 @@ public class PixelHouseAndroid extends CordovaPlugin {
 
         if ("isFlashlightOn".equals(action)) {
             isFlashlightOn(callbackContext);
+            return true;
+        }
+
+        // -------------------------
+        // Battery
+        // -------------------------
+
+        if ("refreshBatteryStatus".equals(action)) {
+            refreshBatteryStatus(callbackContext);
+            return true;
+        }
+
+        if ("isBatteryCharging".equals(action)) {
+            isBatteryCharging(callbackContext);
+            return true;
+        }
+
+        if ("getBatteryLevel".equals(action)) {
+            getBatteryLevel(callbackContext);
             return true;
         }
 
@@ -416,6 +441,65 @@ public class PixelHouseAndroid extends CordovaPlugin {
 
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    // -------------------------
+    // Battery Methods
+    // -------------------------
+
+    private void refreshBatteryStatus(CallbackContext callbackContext) {
+        try {
+            updateBatteryStatus();
+            callbackContext.success("Battery status refreshed");
+        } catch (Exception e) {
+            batteryIsCharging = false;
+            batteryLevel = 0;
+            callbackContext.success("Battery status not available");
+        }
+    }
+
+    private void isBatteryCharging(CallbackContext callbackContext) {
+        try {
+            callbackContext.success(batteryIsCharging ? "true" : "false");
+        } catch (Exception e) {
+            callbackContext.success("false");
+        }
+    }
+
+    private void getBatteryLevel(CallbackContext callbackContext) {
+        try {
+            callbackContext.success(String.valueOf(batteryLevel));
+        } catch (Exception e) {
+            callbackContext.success("0");
+        }
+    }
+
+    private void updateBatteryStatus() {
+        Context context = cordova.getActivity().getApplicationContext();
+
+        IntentFilter batteryFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        Intent batteryStatus = context.registerReceiver(null, batteryFilter);
+
+        if (batteryStatus == null) {
+            batteryIsCharging = false;
+            batteryLevel = 0;
+            return;
+        }
+
+        int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+
+        batteryIsCharging =
+                status == BatteryManager.BATTERY_STATUS_CHARGING
+                        || status == BatteryManager.BATTERY_STATUS_FULL;
+
+        int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+        int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+
+        if (level >= 0 && scale > 0) {
+            batteryLevel = Math.round((level * 100f) / scale);
+        } else {
+            batteryLevel = 0;
         }
     }
 }
