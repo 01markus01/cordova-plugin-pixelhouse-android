@@ -75,6 +75,14 @@ module.exports = {
   // Camera
   // -------------------------
 
+  requestCameraPermission: function (success, error) {
+    exec(success, error, 'PixelHouseAndroid', 'requestCameraPermission', []);
+  },
+
+  isCameraPermissionGranted: function (success, error) {
+    exec(success, error, 'PixelHouseAndroid', 'isCameraPermissionGranted', []);
+  },
+
   takePicture: function (success, error) {
     exec(success, error, 'PixelHouseAndroid', 'takePicture', []);
   }
