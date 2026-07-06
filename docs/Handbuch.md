@@ -1,3 +1,5 @@
+// Handbuch.md
+
 # PixelHouseMobile Handbuch
 
 ## Projektziel
@@ -183,3 +185,108 @@ Returns the current battery level as a percentage (0-100).
 The Battery module intentionally provides only the most commonly used battery information.
 
 Android-specific implementation details are completely hidden from the developer.
+
+# Device Module
+
+## Description
+
+The Device module provides basic information about the current Android device.
+
+Device information is refreshed using a single action and can then be accessed through expressions.
+
+This architecture ensures that Android APIs are only accessed when refreshing the data. Expressions simply return the cached values, resulting in better performance and a consistent API design.
+
+---
+
+## API Overview
+
+### Actions
+
+- Refresh_Device_Info
+
+### Conditions
+
+None
+
+### Expressions
+
+- Device_Manufacturer()
+- Device_Model()
+- Android_Version()
+
+---
+
+## Actions
+
+### Refresh_Device_Info
+
+Refreshes the current device information.
+
+After calling this action, all Device expressions return the latest available values.
+
+---
+
+## Expressions
+
+### Device_Manufacturer()
+
+Returns the manufacturer of the current Android device.
+
+Example:
+
+```
+OUKITEL
+```
+
+---
+
+### Device_Model()
+
+Returns the model name of the current Android device.
+
+Example:
+
+```
+WP55 Pro
+```
+
+---
+
+### Android_Version()
+
+Returns the Android operating system version.
+
+Example:
+
+```
+15
+```
+
+---
+
+## Design Philosophy
+
+The Device module follows the same architecture as the other PixelHouse Mobile modules.
+
+Device information is retrieved only when the Refresh_Device_Info action is executed.
+
+After refreshing, the expressions simply return cached values stored by the plugin.
+
+Advantages:
+
+- Fast expression evaluation
+- No unnecessary Android API calls
+- Consistent architecture across all modules
+- Easy to understand and use within GDevelop
+
+---
+
+## Implementation
+
+Android APIs used:
+
+- Build.MANUFACTURER
+- Build.MODEL
+- Build.VERSION.RELEASE
+
+The retrieved values are cached internally by the plugin and exposed through the corresponding expressions.

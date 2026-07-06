@@ -1,3 +1,4 @@
+// Developer_Log.md
 # PixelHouseMobile Developer Log
 
 ## 2026-07-05
@@ -181,3 +182,67 @@ Added:
 - Hide Android complexity from the developer.
 - Battery status is refreshed only when requested.
 - Battery level is returned as a percentage (0-100).
+
+# Device Module
+
+## Added
+
+### Action
+
+- Refresh_Device_Info
+
+### Expressions
+
+- Device_Manufacturer()
+- Device_Model()
+- Android_Version()
+
+---
+
+## Android
+
+Implemented native device information support using:
+
+- Build.MANUFACTURER
+- Build.MODEL
+- Build.VERSION.RELEASE
+
+Device information is cached after calling:
+
+- Refresh_Device_Info
+
+---
+
+## JavaScript
+
+Added Cordova bridge methods:
+
+- refreshDeviceInfo()
+- getDeviceManufacturer()
+- getDeviceModel()
+- getAndroidVersion()
+
+---
+
+## GDevelop
+
+Added:
+
+Action
+
+- Refresh_Device_Info
+
+Expressions
+
+- Device_Manufacturer()
+- Device_Model()
+- Android_Version()
+
+---
+
+## Design Decisions
+
+- Device information is refreshed only on demand.
+- Expressions never access Android APIs directly.
+- Expressions return cached values only.
+- API intentionally kept minimal for Version 1.0.
