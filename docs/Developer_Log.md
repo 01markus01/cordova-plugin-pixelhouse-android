@@ -52,3 +52,17 @@ Native Funktion zum Anfordern der Benachrichtigungsberechtigung implementieren.
 - BroadcastReceiver (PixelHouseNotificationReceiver) hinzugefügt.
 - plugin.xml erweitert.
 - Grundlage geschaffen, damit Benachrichtigungen auch bei geschlossener App funktionieren.
+
+## Version 0.5
+
+### Android Notification API completed
+
+Implemented:
+
+- Request Android notification permission
+- Schedule local notifications
+- Notification support while app is closed
+- Refresh notification permission status
+- Notifications Enabled condition for GDevelop
+- Improved function names and documentation
+- Cleaned up extension interface

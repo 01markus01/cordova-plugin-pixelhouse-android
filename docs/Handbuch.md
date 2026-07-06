@@ -51,3 +51,32 @@ Seconds = 5
 
 Seconds = 60
 → Nach einer Minute
+
+# Notifications
+
+## Request Android notification permission
+
+Requests the Android runtime notification permission if required.
+
+---
+
+## Schedule Notification
+
+Schedules a local Android notification.
+
+Parameters:
+- Title
+- Message
+- Seconds (0 = immediately)
+
+---
+
+## Refresh Notification Status
+
+Refreshes the current Android notification permission status.
+
+---
+
+## Notifications Enabled
+
+Returns TRUE if notifications are currently enabled.
