@@ -66,3 +66,63 @@ Implemented:
 - Notifications Enabled condition for GDevelop
 - Improved function names and documentation
 - Cleaned up extension interface
+
+# Version 0.6
+
+## Flashlight Module
+
+### Added
+
+- Flashlight_On
+- Flashlight_Off
+- Refresh_Flashlight_Status
+- Flashlight_Is_On
+
+---
+
+## Android
+
+Implemented using:
+
+- CameraManager
+- CameraCharacteristics
+- CameraManager.setTorchMode()
+
+Automatic detection of devices without flashlight support.
+
+No crashes on unsupported devices.
+
+---
+
+## JavaScript
+
+Added bridge functions:
+
+- flashlightOn()
+- flashlightOff()
+- isFlashlightOn()
+
+---
+
+## GDevelop
+
+New category:
+
+Flashlight
+
+Added:
+
+- Action: Flashlight_On
+- Action: Flashlight_Off
+- Action: Refresh_Flashlight_Status
+- Condition: Flashlight_Is_On
+
+---
+
+## Design Decisions
+
+- Keep the public API as small as possible.
+- Hide Android complexity from the developer.
+- No separate "Flashlight Off" condition.
+- Devices without flashlight fail silently.
+- Flashlight_Is_On reports the internally managed flashlight state.
