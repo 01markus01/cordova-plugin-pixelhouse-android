@@ -32,6 +32,7 @@ public class PixelHouseAndroid extends CordovaPlugin {
     private static final String HIGH_CHANNEL_ID = "pixelhouse_high_channel";
     private static final int REQUEST_CODE_POST_NOTIFICATIONS = 5001;
     private static final int REQUEST_CODE_TAKE_PICTURE = 6001;
+    private static final int REQUEST_CODE_CAMERA_PERMISSION = 6002;
 
     // Notification
     private CallbackContext notificationPermissionCallback;
@@ -52,6 +53,7 @@ public class PixelHouseAndroid extends CordovaPlugin {
 
     // Camera
     private CallbackContext cameraCallback;
+    private CallbackContext cameraPermissionCallback;
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -160,6 +162,16 @@ public class PixelHouseAndroid extends CordovaPlugin {
         // -------------------------
         // Camera
         // -------------------------
+
+        if ("requestCameraPermission".equals(action)) {
+            requestCameraPermission(callbackContext);
+            return true;
+        }
+
+        if ("isCameraPermissionGranted".equals(action)) {
+            isCameraPermissionGranted(callbackContext);
+            return true;
+        }
 
         if ("takePicture".equals(action)) {
             takePicture(callbackContext);
@@ -279,6 +291,22 @@ public class PixelHouseAndroid extends CordovaPlugin {
             }
 
             notificationPermissionCallback = null;
+            return;
+        }
+
+        if (requestCode == REQUEST_CODE_CAMERA_PERMISSION) {
+            if (cameraPermissionCallback == null) {
+                return;
+            }
+
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                cameraPermissionCallback.success("Camera permission granted");
+            } else {
+                cameraPermissionCallback.error("Camera permission denied");
+            }
+
+            cameraPermissionCallback = null;
             return;
         }
 
@@ -595,12 +623,62 @@ public class PixelHouseAndroid extends CordovaPlugin {
     // Camera Methods
     // -------------------------
 
+    private void requestCameraPermission(CallbackContext callbackContext) {
+        try {
+            Context context = cordova.getActivity().getApplicationContext();
+
+            if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
+                callbackContext.success("Camera not available");
+                return;
+            }
+
+            if (context.checkSelfPermission(Manifest.permission.CAMERA)
+                    == PackageManager.PERMISSION_GRANTED) {
+                callbackContext.success("Camera permission already granted");
+                return;
+            }
+
+            cameraPermissionCallback = callbackContext;
+
+            cordova.requestPermission(
+                    this,
+                    REQUEST_CODE_CAMERA_PERMISSION,
+                    Manifest.permission.CAMERA
+            );
+
+        } catch (Exception e) {
+            cameraPermissionCallback = null;
+            callbackContext.error(e.toString());
+        }
+    }
+
+    private void isCameraPermissionGranted(CallbackContext callbackContext) {
+        try {
+            Context context = cordova.getActivity().getApplicationContext();
+
+            boolean granted =
+                    context.checkSelfPermission(Manifest.permission.CAMERA)
+                            == PackageManager.PERMISSION_GRANTED;
+
+            callbackContext.success(granted ? "true" : "false");
+
+        } catch (Exception e) {
+            callbackContext.success("false");
+        }
+    }
+
     private void takePicture(CallbackContext callbackContext) {
         try {
             Context context = cordova.getActivity().getApplicationContext();
 
             if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
                 callbackContext.success("Camera not available");
+                return;
+            }
+
+            if (context.checkSelfPermission(Manifest.permission.CAMERA)
+                    != PackageManager.PERMISSION_GRANTED) {
+                callbackContext.error("Camera permission not granted");
                 return;
             }
 
