@@ -1,3 +1,5 @@
+// www/PixelHouseAndroid.js
+
 var exec = require('cordova/exec');
 
 module.exports = {
@@ -23,5 +25,17 @@ module.exports = {
 
   areNotificationsEnabled: function (success, error) {
     exec(success, error, 'PixelHouseAndroid', 'areNotificationsEnabled', []);
+  },
+
+  flashlightOn: function (success, error) {
+    exec(success, error, 'PixelHouseAndroid', 'flashlightOn', []);
+  },
+
+  flashlightOff: function (success, error) {
+    exec(success, error, 'PixelHouseAndroid', 'flashlightOff', []);
+  },
+
+  isFlashlightOn: function (success, error) {
+    exec(success, error, 'PixelHouseAndroid', 'isFlashlightOn', []);
   }
 };

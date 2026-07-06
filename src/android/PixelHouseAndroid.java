@@ -1,3 +1,5 @@
+// PixelHouseAndroid.java
+
 package com.pixelhouse.android;
 
 import android.Manifest;
@@ -9,6 +11,8 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraManager;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
@@ -24,10 +28,20 @@ public class PixelHouseAndroid extends CordovaPlugin {
     private static final String HIGH_CHANNEL_ID = "pixelhouse_high_channel";
     private static final int REQUEST_CODE_POST_NOTIFICATIONS = 5001;
 
+    // Notification
     private CallbackContext notificationPermissionCallback;
+
+    // Flashlight
+    private CameraManager cameraManager;
+    private String flashlightCameraId;
+    private boolean flashlightIsOn = false;
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+
+        // -------------------------
+        // Notifications
+        // -------------------------
 
         if ("prepareDefaultNotificationChannel".equals(action)) {
             prepareDefaultNotificationChannel(callbackContext);
@@ -64,8 +78,31 @@ public class PixelHouseAndroid extends CordovaPlugin {
             return true;
         }
 
+        // -------------------------
+        // Flashlight
+        // -------------------------
+
+        if ("flashlightOn".equals(action)) {
+            flashlightOn(callbackContext);
+            return true;
+        }
+
+        if ("flashlightOff".equals(action)) {
+            flashlightOff(callbackContext);
+            return true;
+        }
+
+        if ("isFlashlightOn".equals(action)) {
+            isFlashlightOn(callbackContext);
+            return true;
+        }
+
         return false;
     }
+
+    // -------------------------
+    // Notification Methods
+    // -------------------------
 
     private void prepareDefaultNotificationChannel(CallbackContext callbackContext) {
         try {
@@ -281,6 +318,104 @@ public class PixelHouseAndroid extends CordovaPlugin {
             channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
 
             notificationManager.createNotificationChannel(channel);
+        }
+    }
+
+    // -------------------------
+    // Flashlight Methods
+    // -------------------------
+
+    private void flashlightOn(CallbackContext callbackContext) {
+        try {
+            String cameraId = getFlashlightCameraId();
+
+            if (cameraId == null) {
+                flashlightIsOn = false;
+                callbackContext.success("Flashlight not available");
+                return;
+            }
+
+            cameraManager.setTorchMode(cameraId, true);
+            flashlightIsOn = true;
+
+            callbackContext.success("Flashlight on");
+
+        } catch (Exception e) {
+            flashlightIsOn = false;
+            callbackContext.success("Flashlight not available");
+        }
+    }
+
+    private void flashlightOff(CallbackContext callbackContext) {
+        try {
+            String cameraId = getFlashlightCameraId();
+
+            if (cameraId == null) {
+                flashlightIsOn = false;
+                callbackContext.success("Flashlight not available");
+                return;
+            }
+
+            cameraManager.setTorchMode(cameraId, false);
+            flashlightIsOn = false;
+
+            callbackContext.success("Flashlight off");
+
+        } catch (Exception e) {
+            flashlightIsOn = false;
+            callbackContext.success("Flashlight off");
+        }
+    }
+
+    private void isFlashlightOn(CallbackContext callbackContext) {
+        try {
+            callbackContext.success(flashlightIsOn ? "true" : "false");
+        } catch (Exception e) {
+            callbackContext.success("false");
+        }
+    }
+
+    private String getFlashlightCameraId() {
+        try {
+            Context context = cordova.getActivity().getApplicationContext();
+
+            if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
+                return null;
+            }
+
+            if (cameraManager == null) {
+                cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+            }
+
+            if (flashlightCameraId != null) {
+                return flashlightCameraId;
+            }
+
+            String[] cameraIds = cameraManager.getCameraIdList();
+
+            for (String cameraId : cameraIds) {
+                CameraCharacteristics characteristics =
+                        cameraManager.getCameraCharacteristics(cameraId);
+
+                Boolean flashAvailable =
+                        characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
+
+                Integer lensFacing =
+                        characteristics.get(CameraCharacteristics.LENS_FACING);
+
+                if (flashAvailable != null
+                        && flashAvailable
+                        && lensFacing != null
+                        && lensFacing == CameraCharacteristics.LENS_FACING_BACK) {
+                    flashlightCameraId = cameraId;
+                    return flashlightCameraId;
+                }
+            }
+
+            return null;
+
+        } catch (Exception e) {
+            return null;
         }
     }
 }
