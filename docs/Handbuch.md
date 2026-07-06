@@ -290,3 +290,56 @@ Android APIs used:
 - Build.VERSION.RELEASE
 
 The retrieved values are cached internally by the plugin and exposed through the corresponding expressions.
+
+
+# Camera
+
+The Camera module provides simple access to the native Android camera.
+
+PixelHouse Mobile completely hides the Android camera implementation. Developers only need to request the camera permission, open the camera and check whether a picture was successfully taken.
+
+Captured pictures are automatically saved by Android in the standard picture location and are available in the device gallery.
+
+---
+
+## Actions
+
+### Request Camera Permission
+
+Requests the Android camera permission at runtime.
+
+### Take Picture
+
+Opens the native Android camera application.
+
+After the user confirms the picture, Android saves it automatically.
+
+---
+
+## Conditions
+
+### Camera Permission Granted
+
+Returns true if the camera permission has been granted.
+
+### Picture Taken
+
+Returns true if the last picture was successfully captured and confirmed by the user.
+
+---
+
+## Design
+
+Like all PixelHouse Mobile modules, Camera uses an asynchronous architecture.
+
+```text
+Request Camera Permission
+        ↓
+Camera Permission Granted
+        ↓
+Take Picture
+        ↓
+Picture Taken
+```
+
+Android specific implementation details remain completely hidden from the GDevelop developer.

@@ -246,3 +246,82 @@ Expressions
 - Expressions never access Android APIs directly.
 - Expressions return cached values only.
 - API intentionally kept minimal for Version 1.0.
+
+# Camera Module
+
+## Added
+
+- Native Android camera support
+- Runtime camera permission
+- Camera permission condition
+- Picture taken condition
+- Native camera launch
+- Camera result handling
+- Automatic picture saving
+- Camera module completed
+
+---
+
+## Android
+
+Implemented:
+
+- requestCameraPermission()
+- isCameraPermissionGranted()
+- takePicture()
+- onActivityResult()
+
+The native Android camera is opened using the Camera Intent.
+
+After the user confirms the captured picture, Android stores the image and returns the result to GDevelop.
+
+---
+
+## JavaScript
+
+Added:
+
+- requestCameraPermission()
+- isCameraPermissionGranted()
+- takePicture()
+- isPictureTaken()
+
+Added internal status variable:
+
+window.pixelHousePictureTaken
+
+---
+
+## GDevelop
+
+Added Actions:
+
+- Request Camera Permission
+- Take Picture
+
+Added Conditions:
+
+- Camera Permission Granted
+- Picture Taken
+
+---
+
+## Design Decisions
+
+The Camera module follows the same architecture as all other PixelHouse Mobile modules.
+
+Action
+
+↓
+
+Android
+
+↓
+
+Internal Status
+
+↓
+
+Condition
+
+This keeps the API simple, consistent and beginner-friendly while hiding all Android-specific complexity.
