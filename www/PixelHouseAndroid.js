@@ -69,5 +69,13 @@ module.exports = {
 
   getAndroidVersion: function (success, error) {
     exec(success, error, 'PixelHouseAndroid', 'getAndroidVersion', []);
+  },
+
+  // -------------------------
+  // Camera
+  // -------------------------
+
+  takePicture: function (success, error) {
+    exec(success, error, 'PixelHouseAndroid', 'takePicture', []);
   }
 };

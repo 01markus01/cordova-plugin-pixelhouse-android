@@ -3,6 +3,7 @@
 package com.pixelhouse.android;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -17,6 +18,7 @@ import android.hardware.camera2.CameraManager;
 import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Build;
+import android.provider.MediaStore;
 import android.provider.Settings;
 
 import org.apache.cordova.CallbackContext;
@@ -29,6 +31,7 @@ public class PixelHouseAndroid extends CordovaPlugin {
     private static final String DEFAULT_CHANNEL_ID = "default_channel";
     private static final String HIGH_CHANNEL_ID = "pixelhouse_high_channel";
     private static final int REQUEST_CODE_POST_NOTIFICATIONS = 5001;
+    private static final int REQUEST_CODE_TAKE_PICTURE = 6001;
 
     // Notification
     private CallbackContext notificationPermissionCallback;
@@ -46,6 +49,9 @@ public class PixelHouseAndroid extends CordovaPlugin {
     private String deviceManufacturer = "";
     private String deviceModel = "";
     private String androidVersion = "";
+
+    // Camera
+    private CallbackContext cameraCallback;
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -148,6 +154,15 @@ public class PixelHouseAndroid extends CordovaPlugin {
 
         if ("getAndroidVersion".equals(action)) {
             getAndroidVersion(callbackContext);
+            return true;
+        }
+
+        // -------------------------
+        // Camera
+        // -------------------------
+
+        if ("takePicture".equals(action)) {
+            takePicture(callbackContext);
             return true;
         }
 
@@ -574,5 +589,59 @@ public class PixelHouseAndroid extends CordovaPlugin {
         } catch (Exception e) {
             callbackContext.success("");
         }
+    }
+
+    // -------------------------
+    // Camera Methods
+    // -------------------------
+
+    private void takePicture(CallbackContext callbackContext) {
+        try {
+            Context context = cordova.getActivity().getApplicationContext();
+
+            if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
+                callbackContext.success("Camera not available");
+                return;
+            }
+
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+            if (intent.resolveActivity(context.getPackageManager()) == null) {
+                callbackContext.success("Camera app not available");
+                return;
+            }
+
+            cameraCallback = callbackContext;
+
+            cordova.startActivityForResult(
+                    this,
+                    intent,
+                    REQUEST_CODE_TAKE_PICTURE
+            );
+
+        } catch (Exception e) {
+            cameraCallback = null;
+            callbackContext.success("Camera not available");
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        if (requestCode == REQUEST_CODE_TAKE_PICTURE) {
+            if (cameraCallback == null) {
+                return;
+            }
+
+            if (resultCode == Activity.RESULT_OK) {
+                cameraCallback.success("success");
+            } else {
+                cameraCallback.success("cancelled");
+            }
+
+            cameraCallback = null;
+            return;
+        }
+
+        super.onActivityResult(requestCode, resultCode, intent);
     }
 }
