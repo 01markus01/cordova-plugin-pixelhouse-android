@@ -18,6 +18,9 @@
     <config-file target="AndroidManifest.xml" parent="/manifest">
       <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
       <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+      <uses-permission android:name="android.permission.CAMERA" />
+      <uses-feature android:name="android.hardware.camera.flash" android:required="false" />
     </config-file>
 
     <config-file target="AndroidManifest.xml" parent="/manifest/application">
