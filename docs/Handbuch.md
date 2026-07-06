@@ -138,3 +138,48 @@ Returns **false** if:
 The Flashlight module intentionally exposes only a very small public API.
 
 Android-specific complexity such as CameraManager, device compatibility and flashlight detection is handled internally by PixelHouse Mobile.
+
+
+# Battery Module
+
+## Description
+
+The Battery module provides simple access to the device battery information.
+
+All Android-specific implementation is handled internally by PixelHouse Mobile.
+
+---
+
+## Actions
+
+### Refresh_Battery_Status
+
+Refreshes the current battery information.
+
+Call this action before using Battery_Is_Charging or Battery_Level() if the latest battery status is required.
+
+---
+
+## Conditions
+
+### Battery_Is_Charging
+
+Returns **true** if the device is currently charging.
+
+Returns **false** if the device is running on battery power.
+
+---
+
+## Expressions
+
+### Battery_Level()
+
+Returns the current battery level as a percentage (0-100).
+
+---
+
+## Design Philosophy
+
+The Battery module intentionally provides only the most commonly used battery information.
+
+Android-specific implementation details are completely hidden from the developer.

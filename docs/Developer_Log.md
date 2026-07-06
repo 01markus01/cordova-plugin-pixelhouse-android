@@ -126,3 +126,58 @@ Added:
 - No separate "Flashlight Off" condition.
 - Devices without flashlight fail silently.
 - Flashlight_Is_On reports the internally managed flashlight state.
+
+
+# Version 0.7
+
+## Battery Module
+
+### Added
+
+- Refresh_Battery_Status
+- Battery_Is_Charging
+- Battery_Level()
+
+---
+
+## Android
+
+Implemented using:
+
+- BatteryManager
+- Intent.ACTION_BATTERY_CHANGED
+
+Battery information is refreshed on demand.
+
+---
+
+## JavaScript
+
+Added bridge functions:
+
+- refreshBatteryStatus()
+- isBatteryCharging()
+- getBatteryLevel()
+
+---
+
+## GDevelop
+
+New category:
+
+Battery
+
+Added:
+
+- Action: Refresh_Battery_Status
+- Condition: Battery_Is_Charging
+- Expression: Battery_Level()
+
+---
+
+## Design Decisions
+
+- Keep the public API as small as possible.
+- Hide Android complexity from the developer.
+- Battery status is refreshed only when requested.
+- Battery level is returned as a percentage (0-100).
