@@ -90,6 +90,18 @@ module.exports = {
 
   isPictureTaken: function (success, error) {
     success(!!window.pixelHousePictureTaken);
+  },
+
+  // -------------------------
+  // Keep Screen On
+  // -------------------------
+
+  keepScreenOn: function (success, error) {
+    exec(success, error, 'PixelHouseAndroid', 'keepScreenOn', []);
+  },
+
+  allowScreenOff: function (success, error) {
+    exec(success, error, 'PixelHouseAndroid', 'allowScreenOff', []);
   }
 };
 
