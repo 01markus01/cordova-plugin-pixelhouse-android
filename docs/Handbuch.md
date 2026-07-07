@@ -343,3 +343,49 @@ Picture Taken
 ```
 
 Android specific implementation details remain completely hidden from the GDevelop developer.
+
+
+## Keep Screen On
+
+### Description
+
+Keeps the Android display awake while your game or application is running.
+
+This is useful for games, visual novels, idle games, kiosks, dashboards, media applications and other apps where the screen should remain active.
+
+The normal Android screen timeout can be restored at any time.
+
+---
+
+### API Overview
+
+#### Actions
+
+| Action | Description |
+|---------|-------------|
+| Keep Screen On | Prevents Android from turning off the display. |
+| Allow Screen Off | Restores the normal Android screen timeout. |
+
+---
+
+### Design
+
+PixelHouse Mobile intentionally exposes only two simple actions.
+
+The Android implementation uses `FLAG_KEEP_SCREEN_ON` internally while completely hiding the Android API from the GDevelop developer.
+
+No Conditions or Expressions are required because this feature only changes the current screen behavior.
+
+---
+
+### Implementation
+
+Android Window Flag:
+
+```
+FLAG_KEEP_SCREEN_ON
+```
+
+The flag is added when **Keep Screen On** is called and removed again with **Allow Screen Off**.
+
+The implementation automatically runs on the Android UI thread.

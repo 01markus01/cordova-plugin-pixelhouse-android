@@ -325,3 +325,60 @@ Internal Status
 Condition
 
 This keeps the API simple, consistent and beginner-friendly while hiding all Android-specific complexity.
+
+## Keep Screen On
+
+### Added
+
+New Android module:
+
+- Keep Screen On
+- Allow Screen Off
+
+---
+
+### Android
+
+Implemented native support using:
+
+```
+WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+```
+
+The flag is added and removed directly on the current Android window.
+
+The implementation executes on the Android UI thread for maximum compatibility.
+
+---
+
+### JavaScript
+
+Added new bridge functions:
+
+- keepScreenOn()
+- allowScreenOff()
+
+---
+
+### GDevelop
+
+New Actions:
+
+- Keep Screen On
+- Allow Screen Off
+
+No Conditions or Expressions are required.
+
+---
+
+### Design Decisions
+
+This module intentionally keeps the API extremely small.
+
+Instead of exposing Android window flags or configuration options, PixelHouse Mobile provides two beginner-friendly actions.
+
+This follows the overall design philosophy of PixelHouse Mobile:
+
+- Simple API
+- Native Android implementation
+- Android complexity hidden from the developer
