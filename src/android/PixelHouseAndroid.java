@@ -181,6 +181,21 @@ public class PixelHouseAndroid extends CordovaPlugin {
             return true;
         }
 
+
+        // -------------------------
+        // Keep Screen On
+        // -------------------------
+
+        if ("keepScreenOn".equals(action)) {
+            keepScreenOn(callbackContext);
+            return true;
+        }
+
+        if ("allowScreenOff".equals(action)) {
+            allowScreenOff(callbackContext);
+            return true;
+        }
+
         return false;
     }
 
@@ -766,6 +781,47 @@ public class PixelHouseAndroid extends CordovaPlugin {
                 }
             });
         } catch (Exception ignored) {
+        }
+    }
+
+
+    // -------------------------
+    // Keep Screen On Methods
+    // -------------------------
+
+    private void keepScreenOn(CallbackContext callbackContext) {
+        try {
+            cordova.getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    cordova.getActivity().getWindow().addFlags(
+                            android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                    );
+                }
+            });
+
+            callbackContext.success("Keep Screen On enabled");
+
+        } catch (Exception e) {
+            callbackContext.error(e.toString());
+        }
+    }
+
+    private void allowScreenOff(CallbackContext callbackContext) {
+        try {
+            cordova.getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    cordova.getActivity().getWindow().clearFlags(
+                            android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                    );
+                }
+            });
+
+            callbackContext.success("Screen timeout restored");
+
+        } catch (Exception e) {
+            callbackContext.error(e.toString());
         }
     }
 
