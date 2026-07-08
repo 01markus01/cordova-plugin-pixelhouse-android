@@ -100,6 +100,11 @@ public class PixelHouseAndroid extends CordovaPlugin {
             return true;
         }
 
+        if ("openAlarmSettings".equals(action)) {
+            openAlarmSettings(callbackContext);
+            return true;
+        }
+
         // -------------------------
         // Flashlight
         // -------------------------
@@ -363,7 +368,21 @@ public class PixelHouseAndroid extends CordovaPlugin {
             AlarmManager alarmManager =
                     (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (alarmManager.canScheduleExactAlarms()) {
+                    alarmManager.setExactAndAllowWhileIdle(
+                            AlarmManager.RTC_WAKEUP,
+                            triggerAtMillis,
+                            pendingIntent
+                    );
+                } else {
+                    alarmManager.set(
+                            AlarmManager.RTC_WAKEUP,
+                            triggerAtMillis,
+                            pendingIntent
+                    );
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 alarmManager.setExactAndAllowWhileIdle(
                         AlarmManager.RTC_WAKEUP,
                         triggerAtMillis,
@@ -384,6 +403,29 @@ public class PixelHouseAndroid extends CordovaPlugin {
             }
 
             callbackContext.success("Native notification scheduled after " + safeSeconds + " seconds");
+
+        } catch (Exception e) {
+            callbackContext.error(e.toString());
+        }
+    }
+
+    private void openAlarmSettings(CallbackContext callbackContext) {
+        try {
+            Context context = cordova.getActivity().getApplicationContext();
+            String packageName = cordova.getActivity().getPackageName();
+
+            Intent intent;
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+                intent.setData(Uri.parse("package:" + packageName));
+            } else {
+                intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                intent.setData(Uri.parse("package:" + packageName));
+            }
+
+            cordova.getActivity().startActivity(intent);
+            callbackContext.success("Opened alarm settings");
 
         } catch (Exception e) {
             callbackContext.error(e.toString());

@@ -11,6 +11,10 @@ module.exports = {
     exec(success, error, 'PixelHouseAndroid', 'openNotificationChannel', [channelId]);
   },
 
+  openAlarmSettings: function (success, error) {
+    exec(success, error, 'PixelHouseAndroid', 'openAlarmSettings', []);
+  },
+
   prepareDefaultNotificationChannel: function (success, error) {
     exec(success, error, 'PixelHouseAndroid', 'prepareDefaultNotificationChannel', []);
   },
